@@ -1,6 +1,6 @@
 <template>
   <div class="title">
-    <slot></slot><!-- 则自定义组件可以写内容 -->
+    <slot></slot>
   </div>
 </template>
 
@@ -15,7 +15,7 @@ export default {
 <style lang="scss" scoped>
 .title{
   display: flex;
-  align-items: center;//
+  align-items: center;
   height: 108px;
   font-size: 32px; /*px*/
   &:before{

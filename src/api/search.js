@@ -12,7 +12,6 @@ export function getSeach(oParams) {
   })
 }
 
-//专辑
 export function getAlbum(oParams) {
   return require.get('/album', {
     params: oParams.params
@@ -24,7 +23,6 @@ export function getAlbumComment(oParams) {
   })
 }
 
-//歌手
 export function getArtists(oParams) {
   return require.get('/artists', {
     params: oParams.params
@@ -32,11 +30,6 @@ export function getArtists(oParams) {
 }
 export function getArtistsDesc(oParams) {
   return require.get('/artist/desc', {
-    params: oParams.params
-  })
-}
-export function getArtistsAlbum(oParams) {
-  return require.get('/artist/album', {
     params: oParams.params
   })
 }

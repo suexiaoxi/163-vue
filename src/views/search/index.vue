@@ -99,11 +99,10 @@ export default {
         }
       }).then((res) => {
         let { data } = res //let data = res.data;
-        //console.log(data, 88)
+        // console.log(data, 88)
         if (data.code == 200) {
-          //console.log(this.searchAlbumData ,111);
           if (type == 1) {
-            ////单歌
+            //单歌
             if (offset == 0) {
               this.searchSongData = data.result.songs
             } else {
@@ -128,7 +127,7 @@ export default {
         }
       })
     },
-    searchHotClick(value) {
+    searchHotClick(value) {//把值放到搜索框的value中
       this.value = value
       //console.log(value, 123)
     },
@@ -137,12 +136,14 @@ export default {
       this.getSeach(this.value, 1, 0) //单歌
       this.getSeach(this.value, 100, 0) //歌手
       this.getSeach(this.value, 10, 0) //专辑
+      //这里写你代码，获取最新数据
       this.$refs.loadmoreNode.onTopLoaded()
     },
     loadBottom() {
       console.log(222)
       this.pageNum++
       this.getSeach(this.value, 1, this.pageNum * 30) //单歌
+      //这里写你代码，加载更多数据
       if (this.total < this.pageNum * 30) {
         this.allLoaded = true // 若数据已全部获取完毕
       }
@@ -166,14 +167,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/.search {//使用 scoped 后，父组件的样式将不会渗透到子组件中，解决方法:加/deep/
+/deep/.search {
   height: auto;
   .mint-searchbar-inner,
   .mint-searchbar-core {
     background: #ebecec;
   }
   .mint-searchbar {
-    display: flex;//
+    display: flex;
     height: 60px;
     padding: 0;
     padding: 30px 20px 29px;
@@ -203,7 +204,7 @@ export default {
     justify-content: center;
     color: #ebeceb;
     font-size: 14px; /*px*/
-    font-weight: bold;//加粗
+    font-weight: bold;
     width: 28px;
     height: 28px;
     background: #bcbdbd;
@@ -211,7 +212,6 @@ export default {
     margin-right: 15px;
     line-height: 28px;
   }
-  //去除input的X
   input[type='search']::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
@@ -251,36 +251,8 @@ export default {
   }
 }
 
-.newSong-list{ 
-li{
-    padding-left: 20px;
-    &>a{
-      display: flex;
-      justify-content: space-between;//两端对齐
-      border-bottom: #e2e2e3 1px solid;/*no*/
-    }
-    .text{
-      padding: 13px 0;
-    }
-    .name{
-      font-size: 26px;/*px*/
-      line-height: 48px;/*px*/
-    }
-    .singer{
-      font-size: 24px;/*px*/
-      line-height: 36px;/*px*/
-      color:#888888;
-    }
-    .fa-play-circle-o{
-      display: flex;
-      align-items: center;//上下居中
-      font-size: 44px;/*px*/
-      color: #aaaaaa;
-      margin-right: 20px;
-    }
-  }
-}
-.album,.artist {
+.album,
+.artist {
   display: flex;
   padding: 16px 0;
   width: 100%;
@@ -292,18 +264,20 @@ li{
     margin-right: 32px;
   }
 }
-.album-img,.artist-img {
+.album-img,
+.artist-img {
   width: 100px;
   height: 100px;
   margin-right: 34px;
 }
-.album-name,.artist-name {
+.album-name,
+.artist-name {
   margin-right: auto;
 }
-.artist-name,.album-name, {
+.artist-name {
   display: flex;
   align-items: center;
-  font-size: 42px;/*px*/
+  font-size: 34px;
 }
 .album-realy-name {
   line-height: 56px;
@@ -319,4 +293,3 @@ li{
   color: #999;
 }
 </style>
-

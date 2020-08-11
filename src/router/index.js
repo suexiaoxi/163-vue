@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import recommendationIndex from '@/views/recommendation/'
-import playlistIndex from '@/views/recommendation/playlist'
 import songIndex from '@/views/song/'
 import searchIndex from '@/views/search/'
-import hotIndex from '@/views/hot/'
-import artistsIndex from '@/views/search/artists'
+import hotSongIndex from '@/views/hot/'
 import albumIndex from '@/views/search/album'
+import artistsIndex from '@/views/search/artist'
+import playlistIndex from '@/views/recommendation/playlist'
+
 Vue.use(Router)
 
 export default new Router({
@@ -16,11 +17,6 @@ export default new Router({
       path: '/',
       name: 'recommendation Index',
       component: recommendationIndex
-    },
-    {
-      path: '/playlist/:id',
-      name: 'playlist index',
-      component: playlistIndex
     },
     {
       path: '/song/:id',
@@ -35,7 +31,12 @@ export default new Router({
     {
       path: '/hot',
       name: 'hot index',
-      component: hotIndex
+      component: hotSongIndex
+    },
+    {
+      path: '/album/:id',
+      name: 'album index',
+      component: albumIndex
     },
     {
       path: '/artists/:id',
@@ -43,9 +44,9 @@ export default new Router({
       component: artistsIndex
     },
     {
-      path: '/album/:id',
-      name: 'album index',
-      component: albumIndex
+      path: '/playlist/:id',
+      name: 'playlist index',
+      component: playlistIndex
     }
   ]
 })

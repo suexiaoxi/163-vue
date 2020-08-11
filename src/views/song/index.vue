@@ -1,240 +1,250 @@
 <template>
-  <div class="song" :style="{ backgroundImage: 'url(http://music.163.com/api/img/blur/'+song.pic_str+')' }">
+  <div class="song" :style="{ backgroundImage: 'url(http://music.163.com/api/img/blur/' + song.pic_str + ')' }">
     <div class="song-wrap">
       <div class="clearfix" @click="songFun" :style="{ height: screen.height + 'px' }">
         <div class="song-player" ref="songPlayerNode">
           <i class="pointer" :style="{ transform: song.isPlay ? 'rotate(20deg)' : 'rotate(0deg)' }"></i>
           <i class="img-bg" :style="{ 'animation-play-state': song.isPlay ? 'running' : 'paused' }"></i>
           <div class="img" :style="{ 'animation-play-state': song.isPlay ? 'running' : 'paused' }">
-            <img :src="song.picUrl" alt="">
+            <img :src="song.picUrl" alt="" />
             <i class="status" v-show="!song.isPlay"></i>
           </div>
         </div>
 
         <div class="lyric" :style="{ height: screen.lyricHeight + 'px' }">
           <div class="lyric-wrap">
-            <ul class="lyric-list" :style="{ 'transition-duration': transitionDurationTime, transform: 'translate(0, '+ -activeIndex*(80/75) +'rem)'}">
-              <li :class="{ active: index == activeIndex }" v-for="(item,index) in song.lyric" :key="index">{{ item.content }}</li>
+            <ul ref="lyricNode" class="lyric-list" :style="{ 'transition-duration': transitionDurationTime, transform: 'translate(0, ' + -getLiPosY() + 'px)' }">
+              <li :class="{ active: index == activeIndex }" v-for="(item, index) in song.lyric" :key="index">{{ item.content }}</li>
             </ul>
           </div>
         </div>
       </div>
- 
+
       <div class="simi">
         <div class="simi-title">喜欢这首个歌的人也听 <a class="fa fa-play-circle-o" @click="pushSongs" href="javascript:;">一键收听</a></div>
         <ul class="simi-list">
           <li v-for="item in simiSong" :key="item.id" @click="$router.replace(`/song/${item.id}`)">
             <div class="simi-song">
-              <img :src="item.picUrl" alt="">
+              <img :src="item.picUrl" alt="" />
               <dl>
                 <dt>{{ item.name }}</dt>
-                <dd>{{ item.artist }} - 歌手·{{ item.albumName }}</dd>
+                <dd>{{ item.artist }} - {{ item.albumName }}</dd>
               </dl>
             </div>
             <i class="fa fa-play-circle-o"></i>
           </li>
         </ul>
       </div>
-
-      <div class="comment" >
-        <div class="comment-title">精彩评论</div>
-          <ul class="comment-list">
-            <li v-for="item in commentData" :key="item.id">
-              <div class="information">
-                <div class="pic-text">
-                  <div class="photo"><img :src="item.user.avatarUrl"></div>
-                  <div class="text">
-                    <div class="name">{{ item.user.nickname }}</div>
-                    <div class="time">{{ parseDate(item.time)}}</div>
-                  </div>
-                </div>
-                <div class="likedCount">
-                  <i class="count">{{item.likedCount}}</i>
-                  <i class="fa fa-thumbs-o-up"></i>
+      <div class="clearfix" >
+        <ul class="hotComment-list">
+          <div class="song_title">精彩评论</div>
+          <li v-for="item in hotCommentData" :key="item.id">
+            <div class="infomation">
+              <div class="pic_text">
+                <div class="photo"><img :src="item.user.avatarUrl"></div>
+                <div class="text">
+                  <div class="name">{{ item.user.nickname }}</div>
+                  <div class="time">{{ parseDate(item.time)}}</div>
                 </div>
               </div>
-              <div class="content">{{ item.content }}</div>
-            </li>
-          </ul>        
+              <div class="likedCount">
+                <i class="count">{{item.likedCount}}</i>
+                <i class="fa fa-thumbs-o-up"></i>
+              </div>
+            </div>
+            <div class="content">{{ item.content }}</div>
+          </li>
+        </ul>        
       </div>
-
     </div>
   </div>
 </template>
 
 <script>
-import { Toast } from 'mint-ui';
-import { getSongUrl, getSongDetail, getSongLyric, getSimiSong ,getComment} from '@/api/song';
+import { Toast } from 'mint-ui'
+import { getSongUrl, getSongDetail, getSongLyric, getSimiSong , getHotComment } from '@/api/song'
 import { parseDate } from '@/utils/date.js';
+
 export default {
-  created(){
-    this.init();
+  created() {
+    this.init()
   },
-  mounted(){
-    var dpr = document.documentElement.getAttribute('data-dpr');
-    var windowResize = ()=>{
-      this.screen.height = window.screen.height * dpr;
-      this.screen.lyricHeight = this.screen.height - this.$refs.songPlayerNode.clientHeight - this.$refs.songPlayerNode.offsetTop;//得到可视高度
-      
+  mounted() {
+    var dpr = document.documentElement.getAttribute('data-dpr')
+    var windowResize = () => {
+      this.screen.height = window.screen.height * dpr
+      this.screen.lyricHeight = this.screen.height - this.$refs.songPlayerNode.clientHeight - this.$refs.songPlayerNode.offsetTop //得到可视高度
+
       //console.log(this.screen.height, this.screen.lyricHeight)
-    };
-    window.onresize = windowResize;
-    windowResize();
+    }
+    window.onresize = windowResize
+    windowResize()
   },
-  data(){
+  data() {
     return {
       song: {
         id: null,
-        isPlay: true,//是否在播放
-        name: '',//歌名
+        isPlay: true, //是否在播放
+        name: '', //歌名
         url: null,
-        picUrl: '',//图片
+        picUrl: '', //图片
         pic_str: '',
-        lyric: [],//{ time: 0, content: '歌词' }
-        activeIndex: 0,//歌词激活位置
+        lyric: [], //{ time: 0, content: '歌词' }
+        activeIndex: 0 //歌词激活位置
       },
 
-      simiSong: [],//相似歌曲
-      commentData:[],//评论
+      simiSong: [], //相似歌曲
+      hotCommentData:[],//热门评论
 
       screen: {
-        height: null,//屏幕的高度,以px作为单位返回的值
-        lyricHeight: null,//歌词可以占据的高度,以px作为单位返回的值
+        height: null, //屏幕的高度,以px作为单位返回的值
+        lyricHeight: null //歌词可以占据的高度,以px作为单位返回的值
       },
 
-      transitionDurationTime: 0,//过渡的动画时间
-    };
+      transitionDurationTime: 0 //过渡的动画时间
+    }
   },
   methods: {
     parseDate,
-    async init(){
+    async init() {
       //此三个接口，同步执行，目的是为了得到一首歌的完整信息
-      await this.getSongDetail();
-      await this.getSongLyric();
-      this.getSongUrl();
+      await this.getSongDetail()
+      await this.getSongLyric()
+      this.getSongUrl()
 
-      this.getSimiSong();
-      this.getComment();
+      this.getSimiSong()
+      this.getHotComment()
 
-      this.song.id = Number(this.$route.params.id);
-
+      this.song.id = Number(this.$route.params.id)
     },
-    songFun(){
-      this.song.isPlay = !this.song.isPlay;
-      this.$store.commit('updateSong', this.song);
-      this.$store.commit('updateSongList',this.song.id);
+    songFun() {
+      this.song.isPlay = !this.song.isPlay
+      this.$store.commit('updateSong', this.song)
+      this.$store.commit('updateSongList', this.song.id)
     },
-//一键收听，将歌的id加入播放器列表
-    pushSongs(){
-      var payload = this.simiSong.map(itme => itme.id);//等价this.simiSong.map(itme =>{ return itme.id;});
-      Toast('收听成功！');
-      this.$store.commit('updateSongList',payload);
+    getLiPosY() {
+      if (this.$refs.lyricNode) {
+        var liNode = this.$refs.lyricNode.querySelector('li:nth-child(' + (this.activeIndex + 1) + ')')
+        if (liNode) {
+          var offsetTop = liNode.offsetTop
+          return offsetTop
+        } else {
+          return 0
+        }
+      } else {
+        return 0
+      }
     },
-//歌url接口
-    getSongUrl(){//歌url接口
-      return new Promise((resolve,reject) =>{
-        var id = this.$route.params.id;
-        getSongUrl({ 
+    pushSongs() {
+      //一键收听，将歌的id加入播放器列表
+      var payload = this.simiSong.map((itme) => itme.id) //等价this.simiSong.map(itme =>{ return itme.id;});
+      Toast('收听成功！')
+      this.$store.commit('updateSongList', payload)
+    },
+    getSongUrl() {
+      //歌url接口
+      return new Promise((resolve, reject) => {
+        var id = this.$route.params.id
+        getSongUrl({
           params: {
             id
           }
-        }).then(res =>{
-          var data = res.data;
-          if(data.code == 200){
-            var song = data.data[0];
-            if(song){
-              if(this.url != song.url){//对同一首歌进入不做重新播放处理
-                this.song.url = song.url;
-                this.songFun();
+        }).then((res) => {
+          var data = res.data
+          if (data.code == 200) {
+            var song = data.data[0]
+            if (song) {
+              if (this.url != song.url) {
+                //对同一首歌进入不做重新播放处理
+                this.song.url = song.url
+                this.songFun()
               }
             }
           }
-          resolve(true);
-        });
-      });
+          resolve(true)
+        })
+      })
     },
-//歌详情接口
-    getSongDetail(){
-      return new Promise((resolve,reject) =>{
-        var ids = this.$route.params.id;
-        getSongDetail({ 
+    getSongDetail() {
+      //歌详情接口
+      return new Promise((resolve, reject) => {
+        var ids = this.$route.params.id
+        getSongDetail({
           params: {
             ids
           }
-        }).then(res =>{
-          var data = res.data;
-          if(data.code == 200){
-            var songData = data.songs[0];
-            if(songData){
-              var al = songData.al;
-              this.song.name = al.name;
-              this.song.picUrl = al.picUrl;
-              this.song.pic_str = al.pic_str;
+        }).then((res) => {
+          var data = res.data
+          if (data.code == 200) {
+            var songData = data.songs[0]
+            if (songData) {
+              var al = songData.al
+              this.song.name = al.name
+              this.song.picUrl = al.picUrl
+              this.song.pic_str = al.pic_str
               //this.song.id = songData.id;
             }
           }
-          resolve(true);
-        });
-      });
+          resolve(true)
+        })
+      })
     },
-//歌词接口
-    getSongLyric(){
-      return new Promise((resolve,reject) =>{
-        var id = this.$route.params.id;
-        getSongLyric({ 
+    getSongLyric() {
+      return new Promise((resolve, reject) => {
+        var id = this.$route.params.id
+        getSongLyric({
           params: {
             id
           }
-        }).then(res =>{
-          var data = res.data;
-          if(data.code == 200){
+        }).then((res) => {
+          var data = res.data
+          if (data.code == 200) {
             var lyric = data.lrc.lyric
-            if(lyric){
-              var lyricArr = lyric.split(/\n/);
-              var newLyricArr = lyricArr.map(item => {//映射会生成一个新的数组，对每一个项映射
-                var arrItem = item.split(']');
-                var arrTime = arrItem[0].slice(1).split(':');
-                var time = arrTime[0]*60+Number(arrTime[1]);
-                var content = arrItem[1];
-                return { 
-                  time, 
-                  content 
-                };
-              });
-              this.song.lyric = newLyricArr;
+            if (lyric) {
+              var lyricArr = lyric.split(/\n/)
+              var newLyricArr = lyricArr.map((item) => {
+                var arrItem = item.split(']')
+                var arrTime = arrItem[0].slice(1).split(':')
+                var time = arrTime[0] * 60 + Number(arrTime[1])
+                var content = arrItem[1]
+                return {
+                  time,
+                  content
+                }
+              })
+              this.song.lyric = newLyricArr
               console.log(newLyricArr)
             }
           }
-          resolve(true);
-        });
-      });
+          resolve(true)
+        })
+      })
     },
-//获取类似音乐接口
-    getSimiSong(){
-      var id = this.$route.params.id;
+    getSimiSong() {
+      //获取类似音乐
+      var id = this.$route.params.id
       getSimiSong({
         params: {
           id
         }
-      }).then(res =>{
-        var data = res.data;
-        if(data.code == 200){
-          this.simiSong = data.songs.map(item=>{
+      }).then((res) => {
+        var data = res.data
+        if (data.code == 200) {
+          this.simiSong = data.songs.map((item) => {
             return {
-              id: item.id,//歌id
-              name: item.name,//歌名
-              picUrl: item.album.picUrl,//专辑图片
-              albumName: item.album.name,//专辑名
-              artist: item.artists[0] ? item.artists[0].name : '',//歌手
-            };
+              id: item.id, //歌id
+              name: item.name, //歌名
+              picUrl: item.album.picUrl, //专辑图片
+              albumName: item.album.name, //专辑名
+              artist: item.artists[0] ? item.artists[0].name : '' //歌手
+            }
           })
         }
-      });
+      })
     },
-//评论接口
-    getComment(){
+    getHotComment(){
       var id = this.$route.params.id;
-      getComment({
+      getHotComment({
         params: {
           id,
           type:0,
@@ -242,108 +252,110 @@ export default {
         }
       }).then(res =>{
         var data = res.data;
-        console.log(data,999);
-        if(data.code == 200){
-          this.commentData = data.hotComments; 
+        if(data.code == 200){//成功
+          this.hotCommentData = data.hotComments; 
         }
       })
     },
-//得到过渡时间
-    transitionDuration(){
-      var activeLyric = this.song.lyric[this.activeIndex];//当前歌词
-      var nextIndex = this.activeIndex + 1;//得到下一个索引
-      while(true){//优化，找到下一句有歌词的时间
-        var nextLyric = this.song.lyric[nextIndex];//下一个索引的歌词对象
-        if(nextLyric){
-          if(nextLyric.content == ''){
-            nextIndex++;
+    transitionDuration() {
+      //得到过渡时间
+      var activeLyric = this.song.lyric[this.activeIndex] //当前歌词
+      var nextIndex = this.activeIndex + 1 //得到下一个索引
+      while (true) {
+        //优化，找到下一句有歌词的时间
+        var nextLyric = this.song.lyric[nextIndex] //下一个索引的歌词对象
+        if (nextLyric) {
+          if (nextLyric.content == '') {
+            nextIndex++
+          } else {
+            this.transitionDurationTime = nextLyric.time - activeLyric.time + 's'
+            break //跳出循环
           }
-          else{
-            this.transitionDurationTime = nextLyric.time - activeLyric.time + "s";
-            break;//跳出循环
-          }
-        }
-        else{
-          this.transitionDurationTime = 0;
-          break;//跳出循环
+        } else {
+          this.transitionDurationTime = 0
+          break //跳出循环
         }
       }
 
-     /* var nextLyric = this.song.lyric[this.activeIndex + 1];//下一句歌词
+      /* var nextLyric = this.song.lyric[this.activeIndex + 1];//下一句歌词
       if (nextLyric) {
         this.transitionDurationTime = nextLyric.time - activeLyric.time + "s";
       } else {
         this.transitionDurationTime = 0;
       }*/
       console.log(this.transitionDurationTime)
-    },
+    }
   },
   computed: {
-    songStore(){//得到歌的数据
-      return this.$store.getters.song;
+    songStore() {
+      //得到歌的数据
+      return this.$store.getters.song
     },
-    activeIndex(){
-      return this.songStore.activeIndex;
+    activeIndex() {
+      return this.songStore.activeIndex
     },
-    url(){
-      return this.songStore.url;
+    url() {
+      return this.songStore.url
     },
-    isPlay(){
-      return this.songStore.isPlay;
-    },
+    isPlay() {
+      return this.songStore.isPlay
+    }
   },
   watch: {
-    isPlay(newval){
-      this.song.isPlay = newval;
+    isPlay(newval) {
+      this.song.isPlay = newval
     },
-    activeIndex(newval){
-      this.transitionDuration();
+    activeIndex(newval) {
+      this.transitionDuration()
     },
-    ['$route'](newval,oldval){
-      this.init();
-    },
+    ['$route'](newval, oldval) {
+      this.init()
+    }
   },
-  components: {
-
-  }
+  components: {}
 }
 </script>
 
 <style lang="scss" scoped>
-@keyframes circle
-{//从0到360度img-bg做动画
-  from { transform: rotate(0deg);}
-  to {transform: rotate(360deg);}
+@keyframes circle {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.song{
+.song {
   background: #484848 no-repeat center 0 / auto 100%;
 }
-.song-wrap{
-  background: rgba(0,0,0,0.5);
+.song-wrap {
+  background: rgba(0, 0, 0, 0.5);
   overflow-x: hidden;
-  .lyric{
+  .lyric {
     box-sizing: border-box;
     padding: 46px 0;
     display: flex;
   }
-  .lyric-wrap{
+  .lyric-wrap {
     width: 100%;
     text-align: center;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.4);
     font-size: 34px; /*px*/
     overflow: hidden;
-    .lyric-list{
+    .lyric-list {
       transition-property: transform;
     }
-    li{
+    li {
       min-height: 80px;
       line-height: 80px;
     }
-    .active{  color: rgba(255,255,255,1); }
+    .active {
+      color: rgba(255, 255, 255, 1);
+    }
   }
 }
-.song-player{
+.song-player {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -351,7 +363,7 @@ export default {
   width: 585px;
   height: 585px;
   margin: 175px auto 0;
-  .pointer{
+  .pointer {
     position: absolute;
     left: 50%;
     top: -185px;
@@ -362,18 +374,17 @@ export default {
     transition: transform 0.5s;
     transform-origin: 80px 0;
   }
-  .img-bg{
+  .img-bg {
     position: absolute;
     left: 0;
     top: 0;
     z-index: 2;
     width: 100%;
     height: 100%;
-    background: url('~@/assets/img/disc.png') no-repeat 0 0 / 100% 100%; 
+    background: url('~@/assets/img/disc.png') no-repeat 0 0 / 100% 100%;
     animation: circle 5s linear infinite;
-    //动画动画，可以定义多个属性，动画名 5s转一圈 匀速旋转 永久动画
   }
-  .img{
+  .img {
     position: relative;
     z-index: 5;
     width: 370px;
@@ -383,7 +394,7 @@ export default {
     background: #000;
     animation: circle 5s linear infinite;
   }
-  .status{
+  .status {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -393,126 +404,120 @@ export default {
     background: url('~@/assets/img/play-icon.png') no-repeat 0 0 / 100% 100%;
   }
 }
-.simi{
+.simi {
   padding: 0 30px;
   color: #fff;
-  font-size: 36px;/*px*/
-  .simi-title{
+  font-size: 36px; /*px*/
+  .simi-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 110px;
-    .fa-play-circle-o{
-      border: 1px solid #fff;/*no*/
+    .fa-play-circle-o {
+      border: 1px solid #fff; /*no*/
       border-radius: 24px;
       padding: 0 16px;
       color: #fff;
       line-height: 48px;
-      font-size: 26px;/*px*/
+      font-size: 26px; /*px*/
     }
   }
-  .simi-list{
+  .simi-list {
     display: flex;
     flex-flow: wrap;
-    li{
+    li {
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       height: 120px;
     }
-    .simi-song{
+    .simi-song {
       display: flex;
       height: 82px;
-      img{
+      img {
         width: 82px;
         height: 82px;
         border-radius: 5px;
         margin-right: 20px;
       }
-      dt{
-        font-size: 32px;/*px*/
+      dt {
+        font-size: 32px; /*px*/
         line-height: 42px;
       }
-      dd{
-        font-size: 24px;/*px*/
+      dd {
+        font-size: 24px; /*px*/
         color: #b4b0aa;
         line-height: 40px;
       }
     }
-    .fa-play-circle-o{
-      font-size: 54px;/*px*/
+    .fa-play-circle-o {
+      font-size: 54px; /*px*/
       color: #b4b0aa;
     }
   }
 }
-
-.comment{
-  padding: 0 30px;
-  color: #fff;
-  font-size: 36px;/*px*/
-  .comment-title{
-    display: flex;
+.hotComment-list{
+  .song_title{
+    padding: 0 30px;
+    font-size: 36px;/*px*/
+    line-height: 48px; /*px*/
+      display: flex;
     justify-content: space-between;
     align-items: center;
     height: 110px;
-  }
-  .comment-list{
+    color: #fff;
+  }  
+  li{
+    padding: 0 0 30px 30px;
+    .infomation{
     display: flex;
-    flex-flow: wrap;
-    li{
-      width: 100%;
-      padding: 0 0 30px 0;
-      .information{
+    justify-content: space-between;
+    }
+
+    .pic_text{
       display: flex;
       justify-content: space-between;
+      .photo img{
+        width: 66px;
+        height: 66px;
+        background: #fff;
+        border-radius: 50%
+      }
+      .text{
+        margin-left: 20px;
+      }
+      .name{
+        font-size: 26px;/*px*/
+        line-height: 36px;/*px*/
+        color:#ccc;
+      }
+      .time{
+        font-size: 20px;/*px*/
+        line-height: 30px;/*px*/
+        color:#8a8a8a;
+        font-weight: bold;
+      }
+    }
+    .likedCount{
+      display: flex;
       align-items: center;
+      .count{
+        font-size: 20px;
+        font-style:normal;
+        margin-right: 8px;
       }
-      .pic-text{
-        display: flex;
-        justify-content: space-between;
-        .photo img{
-          width: 66px;
-          height: 66px;
-          background: #fff;
-          border-radius: 50%
-        }
-        .text{
-          margin-left: 20px;
-        }
-        .name{
-          font-size: 26px;/*px*/
-          line-height: 36px;/*px*/
-          color:#a9a5a4;
-        }
-        .time{
-          font-size: 20px;/*px*/
-          line-height: 30px;/*px*/
-          color:#7c7676;
-        }
+      .fa-thumbs-o-up{
+        font-size: 26px;/*px*/
       }
-      .likedCount{
-        display: flex;
-        align-items: center;
-        .count{
-          font-size: 20px;
-          font-style:normal;
-          margin-right: 8px;
-        }
-        .fa-thumbs-o-up{
-          font-size: 26px;/*px*/
-        }
-        color: #aaa;
-        margin-right: 30px;
-      }
-      .content{
-        color: #f8f2f5;
-        font-size: 29px;/*px*/
-        line-height: 60px;/*px*/
-        margin:30px 0 0 77px;
-        padding-bottom:27px;
-        border-bottom:#5a4941 3px solid;
-      }
+      color: #aaa;
+      margin-right: 30px;
+    }
+    .content{
+      color: #dcdcdc;
+      font-size: 26px;/*px*/
+      line-height: 38px;/*px*/
+      padding:25px 30px 25px 86px;
     }
   }
 }

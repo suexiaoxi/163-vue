@@ -1,353 +1,298 @@
 <template>
- <div>
- 	<div class="list-top">
-      <div  class="content" >
-        <div class="top-bg"  :style="{ backgroundImage:  'url(http://music.163.com/api/img/blur/'+playlistData.coverImgId_str+')'}"></div>
-        <div class="img-title">
-          <img :src="playlistData.coverImgUrl" alt="">
-          <span><i class="fa fa-headphones"></i>{{(this.playlistData.playCount/1000).toFixed(1)+"万"}}</span><!-- 耳机图标和播放数量 -->
-          <span class="title">歌单</span>
+  <div>
+   <div class="album-header" :style="{ backgroundImage: 'url(http://music.163.com/api/img/blur/' + playlistData.coverImgId_str + ')' }">
+      <div class="album-wrap">
+        <div class="header-img">
+            <i class="songPlaylist">歌单</i>
+            <img :src="playlistData.coverImgUrl">
+            <span><i class="fa fa-headphones"></i>{{ (playlistData.playCount / 10000).toFixed(1) + '万' }}</span>
         </div>
-
-        <div class="intro-text">            
-          <i class="playname">{{ playlistData.name }}</i>
-          <div class="creator">
-            <!----><img :src="playlistData.creator.avatarUrl" alt="">
-            <i>{{ playlistData.creator.nickname}}</i>
+        <div class="header-text">
+          <i class="album-name">{{playlistData.name}}</i>
+          <div class="creator-infor">
+            <img :src="playlistData.creator.avatarUrl">
+            <i>{{playlistData.creator.nickname}}</i>
           </div>
         </div>
-      </div> 
-
-      <div class="description">
-        <ul class="tag">标签：
-          <li v-for="(item,index) in playlistData.tags" :key="index">{{ item }}</li>
-        </ul>
-        <div class="intro" >
-          <span class="intro">简介：{{playlistData.description}}</span>
-        </div>
       </div>
 
-      <div>
-        <h3 class="listTitle">歌曲列表</h3> 
-        <ul class="newSong-list">
-          <li v-for="(item,index) in songsData" :key="item.id">
-            <router-link :to="'/song/' + item.id">
-              <div class="text">
-                <div class="sequence">{{ index + 1 }}</div>
-                <div class="songSinger">
-                  <div class="name">{{ item.name }}
-                    <i class="originSing"> {{ item.alia.name  != null ?  '('+item.alia.name + ')' : '' }}</i>
-                  </div>
-                  <div class="singer">{{ item.ar[0].name != null ? item.ar[0].name : '未知歌手' }} - {{ item.al.name }}</div>                
-                </div>
-              </div>
-              <i class="fa fa-play-circle-o"></i>            
-            </router-link>
-          </li>
-        </ul>
-      </div>
+   </div>
+   <div class="ablum-intro" @click="showMore()">
+     <div class="tags">标签：
+       <i v-for="(item, index) in playlistData.tags" :key="index">{{item}}</i>
+     </div>
+     <div class="intro-text">
+        <p v-for="(item, index) in description" :key="index">{{getIntro(index,item)}}</p>
+     </div>
+     <i class="fa fa-angle-down" v-if="isShowMore"></i>
+     <i class="fa fa-angle-up" v-else ></i>
+   </div>
 
-      <div class="comment">
-        <h4 class="listTitle">精彩评论</h4>
-        <ul class="comment-list">
-          <li v-for="item in hotCommentData" key="item.id">
-            <div class="information">
-              <div class="pic-text">
-                <div class="photo"><img :src="item.user.avatarUrl" alt=""></div>
-                <div class="text">
-                  <div class="name">{{ item.user.nickname }}</div>
-                  <div class="time">{{ parseDate(item.time) }}</div>
+   <div class="songsList">
+      <div class="ablum-title">歌曲列表</div>
+      <ul class="newSong-list">
+        <li v-for="(item,index) in songsData" :key="item.id">
+          <router-link :to="'/song/' + item.id">
+            <div class="text">
+              <div class="sorting">{{ index+1 }}</div>
+              <div class="name-singer">
+                <div class="name">{{ item.name }}
+                  <i class="originSing" style="color:#888"> {{ item.alia[0]  != null ?  '('+item.alia[0] + ')' : '' }}</i>
                 </div>
-              </div>
-              <div class="likedCount">
-                <i class="count">{{item.likedCount}}</i>
-                <i class="fa fa-thumbs-o-up"></i>
+                <div class="singer">{{ item.ar[0].name != null ? item.ar[0].name : '' }} - {{ item.al.name }}</div>                
               </div>
             </div>
-            <div class="comment-content">{{item.content}}</div>
-          </li>
-        </ul>
-      </div>
+            <i class="fa fa-play-circle-o"></i>              
+          </router-link>
+        </li>
+      </ul>
+   </div>
 
-    
-    </div>
- </div>
+   <div class="clearfix" >
+      <ul class="hotComment-list">
+        <div class="ablum-title">精彩评论</div>
+        <li v-for="item in hotCommentData" :key="item.id">
+          <div class="infomation">
+            <div class="pic_text">
+              <div class="photo"><img :src="item.user.avatarUrl"></div>
+              <div class="text">
+                <div class="name">{{ item.user.nickname }}</div>
+                <div class="time">{{ parseDate(item.time)}}</div>
+              </div>
+            </div>
+            <div class="likedCount">
+              <i class="count">{{item.likedCount}}</i>
+              <i class="fa fa-thumbs-o-up"></i>
+            </div>
+          </div>
+          <div class="content">{{ item.content }}</div>
+        </li>
+      </ul>        
+   </div>
+   <div class="clearfix" >
+      <ul class="hotComment-list">
+        <div class="ablum-title">最新评论</div>
+        <li v-for="item in newCommentData" :key="item.id">
+          <div class="infomation">
+            <div class="pic_text">
+              <div class="photo"><img :src="item.user.avatarUrl"></div>
+              <div class="text">
+                <div class="name">{{ item.user.nickname }}</div>
+                <div class="time">{{ parseDate(item.time)}}</div>
+              </div>
+            </div>
+            <div class="likedCount">
+              <i class="count">{{item.likedCount}}</i>
+              <i class="fa fa-thumbs-o-up"></i>
+            </div>
+          </div>
+          <div class="content">{{ item.content }}</div>
+        </li>
+      </ul>        
+   </div> 
+
+  </div>
 </template>
 
 <script>
-import { getPlaylistDetail,getPlaylistComment } from '@/api/recommendation'; 
-import { parseDate } from '@/utils/date.js';
-export default {
-	created(){
-		this.getPlaylistDetail();
-    this.getPlaylistComment();
-	},
+import { getPlaylistDetail ,getPlaylistComment } from '@/api/recommendation'
+import { parseDate1 ,parseDate} from '@/utils/date.js';
 
-	data(){
-		return {
-			playlistData:{
+export default {
+  data() {
+    return {
+      playlistData:{
         creator:'',
         name:'',
       },
-      tags:[],//标签
-      description:{},//简介
-      //isShowMore:true,//是否显示更多
-      //arrowStatus:true,//简介的箭头上下
-
-      songsData:[],//歌曲列表数据
-
-      hotCommentData:[],//精彩评论
+      description:{}, //页面的简介
+      isShowMore: true, //简介是否显示更多
+      arrowStatus:true, //简介上的箭头上下状态
       
-		}
-	},
-	methods:{
-    parseDate,
-    //歌单内容
-		getPlaylistDetail(){
-			var id = this.$route.params.id
-			getPlaylistDetail({//使用此接口
-				params:{//传参
-					id,
-				}
-			}).then((res)=>{
-				let{ data } = res;
-				if(data.code == 200){//表示成功
-					this.playlistData = data.playlist;//得到数据
-          this.tags = data.playlist.tags;//得到标签数据
-          this.playlistData = data.playlist;
-          this.songsData = data.playlist.tracks;
-          this.description = data.playlist.description;//得到简介的数据
-          if(description){
-            this.descriptionArr = description.split(/\n/);//字符串转数组  换行
-          }
-          this.description = descriptionArr;
-					console.log(data.playlist,111);
-				}
-			})
-		},
-    //简介
-
-    //评论
-    getPlaylistComment(){
+      songsData:[], //歌曲列表数据
+      hotCommentData:[],//精彩评论
+      newCommentData:[],//最新评论
+    }
+  },
+  created() {
+    this.getPlaylistDetail();
+    this.getPlaylistComment();
+  },
+  methods: {
+    parseDate1,parseDate,
+    getPlaylistDetail() {
       var id = this.$route.params.id
-      getPlaylistComment({
-        params:{
+      getPlaylistDetail({
+        params: {
           id,
-          limit:20,
         }
-      }).then((res)=>{
+      }).then((res) => {
         let { data } = res;
-        if(data.code == 200){
-          this.hotCommentData = data.hotComments;
-          
-          //this.getPlaylistComment = data.comments;
+        if (data.code == 200) {
+          this.playlistData = data.playlist;
+          this.description = data.playlist.description;
+          this.songsData = data.playlist.tracks;
+          if(this.description){
+            var descriptionArr = this.description.split(/\n/)
+          }
+          this.description=descriptionArr;
         }
       })
+    }, 
+    getPlaylistComment() {
+      var id = this.$route.params.id
+      getPlaylistComment({
+        params: {
+          id,
+        }
+      }).then((res) => {
+        let { data } = res;
+        if (data.code == 200) {
+          this.hotCommentData = data.hotComments;
+          this.newCommentData = data.comments;
+        }
+      })
+    }, 
+    getIntro(index,item){
+      if(index==0){
+        return `简介：${item}`;
+      }
+      else return item;
+    },
+    showMore() {
+      if(this.isShowMore==true){
+        document.querySelector(".intro-text").style.height="auto";
+        this.isShowMore=!this.isShowMore;
+      }
+      else{
+         document.querySelector(".intro-text").style.height="1.52rem";
+         this.isShowMore=!this.isShowMore;
+      }
     },
   },
+
 }
 </script>
 
 <style lang="scss" scoped>
-//头部
-.list-top{
-  .content{
+.album-header{
+  background: no-repeat center center / 2000% 2000%;
+  .album-wrap{
     display: flex;
+    justify-content: flex-start;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 60px 30px 0 30px; 
+    width: 100%;
+    height: 372px;
+    box-sizing: border-box;
+  }
+  .header-img{
+    width: 290px;
+    height: 252px;
     position: relative;
-    height:252px;
-    padding:60px 20px 60px 30px;
-    overflow:hidden;
-  }
-  .top-bg{
-    position:absolute;
-    left:0;
-    top:0;
-    height:100%;
-    width:100%;
-    filter:blur(70px);
-    z-index:1;
-    background-size:cover;
-  }
-  .img-title{
-    display:flex;
-    position:relative;
-    height:100%;
-    width:292px;
-    z-index:999;
-    margin-right:40px;
+    
+    img{
+      width: 252px;height: 252px;
+    }
     span{
-      position:absolute;
-      right:1px;
-      top:0;
-      color:#fff;
-      font-size: 22px;/*px*/
+      position: absolute;
+      right:4px;top:4px;
+      height: 36px;
+      color: #fff;
+      font-size: 24px;/*px*/
     }
-    .fa-headphones{
-      margin-right:6px;
-    }
-    .title{
-      position:absolute;
-      top:10px;
-      left:0;
-      padding:0 8px;
-      width:70px;
-      font-size:22px;/*px*/
+    .songPlaylist{
+      position: absolute;
+      top:20px;left:0;
+      width: 80px;height: 34px;
+      font-size: 18px;/*px*/  color: #fff;
+      background-color: #c33c3c;
+      border-radius:0 17px 17px 0;
+      display: flex;
       text-align: center;
-      line-height: 34px;
-      background-color: rgba(217,48,48,.8);
-      border-top-right-radius: 18px;
-      border-bottom-right-radius: 18px;
-      z-index:3;
+      justify-content: center;
     }
   }
-  .intro-text{
-    z-index:5;
-    color:#fff;
-    .playname{
-      color:#fefefe;
-      font-size:36px;/*px*/
+  .header-text{
+    display: flex;
+    flex-flow: column;
+    padding: 25px 0 0 32px;
+    .album-name{
+      color: #fefefe;
+      font-size: 34px;/*px*/
     }
-    .creator{
-      display:flex;
-      height:60px;
-      margin-top:40px;
-      
-      //overflow:hidden; 
-      //white-space:nowrap; 
-      //text-overflow:ellipsis; 
+    .creator-infor{
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: 40px;
       img{
-        width:60px;
-        height:60px;
-        border-radius:50%;
+        width: 60px;height: 60px;
+        border-radius:30px;
       }
       i{
-        margin:10px 0 0 10px;
-        font-size:28px;/*px*/
+        font-size: 28px;/*px*/
         color:#fff;
+        margin-left: 10px;
       }
     }
-  } 
-}
-
-//标签和简介
-.description{
-  padding:20px 0 0px 30px;
-  .tag{
-    display:flex;
-    flex-flow: wrap;
-    font-size:26px;/*px*/
-    line-height:36px;/*px*/
-    margin-bottom:20px;
-    li{
-      display:flex;
-      padding:0 20px;
-      border:1px solid #d3d3da;/*no*/
-      border-radius:32px;
-      color:#333;
-      margin-right:16px;
-    }
-  }
-  .intro{
-    display:flex;
-    height:100%;
-    overflow:hidden;
-    margin-right:20px;
-    font-size:26px;/*px*/
   }
 }
-
-//歌曲列表
-.listTitle{
-  line-height:46px;
-  font-size:26px;
+.ablum-intro{
+  position: relative;
+  height: 100%;
+  padding:20px 20px 0 30px;
+  font-size: 28px;/*px*/
   color:#666;
-  padding-left:26px;
-  background:#eeeff0;
+  margin-bottom: 42px;
+  .tags{
+    margin-bottom: 10px;
+  }
+  .tags>i{
+    font-size: 24px;/*px*/
+    border:1px solid #999;/*no*/
+    border-radius:24px;
+    padding: 2px 16px;
+    height: 44px;
+    margin-right: 10px;
+  }
+  .intro-text{
+    height: 114px;
+    overflow: hidden;
+  }
+  .fa-angle-down,.fa-angle-up{
+    position: absolute;
+    bottom:-42px; right:22px;
+    font-size: 46px;/*px*/
+    color:#666;
+  }
 }
 .newSong-list{
   li{
-    padding-left:0;
+     padding-left: 0;
   }
 }
 .text{
   display: flex;
   justify-content: space-between; 
-  .sequence{
+  .sorting{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    font-size: 34px;/*px*/
+    font-size: 26px;/*px*/
     color: #888888;
-  }
-  .name{
-    font-size:34px;/*px*/
-    line-height:60px;/*px*/
-  }
-  .singer{
-    font-size:24px;/*px*/
-    line-height:40px;/*px*/
+    width: 80px;
   }
 }
-//评论
-.comment-list{
-  display:flex;
-  flex-flow: wrap;
-  padding:20px 30px 0 30px;
-  li{
-    width:100%;
-    padding-bottom:30px;
-    .information{
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-    }
-    .pic-text{
-      display:flex;
-      justify-content: space-between;
-      padding-top:0;
-      .photo img{
-        width:66px;
-        height:66px;
-        border-radius:50%;
-      }
-      .text{
-        display:inline;
-        margin-left:20px;
-      }
-      .name{
-        font-size:30px;/*px*/
-        line-height:40px;/*px*/
-        color:#666;
-      }
-      .time{
-        font-size:20px;/*px*/
-        line-height:30px;/*px*/
-        color:#999;
-      }
-    }
-    .likedCount{
-      display:flex;
-      align-items:center;
-      .count{
-        font-size:20px;/*px*/
-        margin-right:8px;
-        font-style:normal;
-        color:#999;
-      }
-      .fa-thumbs-o-up{
-        font-size:26px;/*px*/
-        color:#999;
-      }
-    }
-    .comment-content{
-        font-size:15px;/*px*/
-        line-height:26px;/*px*/
-        margin:30px 0 0 60px;
-        padding-bottom:30px;
-        border-bottom:#dfdfdf 1px solid;
-    }
-  }
+.ablum-title{
+  display: flex;
+  align-items: center;;
+  padding:0 20px;
+  margin-bottom: 10px;;
+  color: #666;
+  font-size: 24px;/*px*/
+  height: 46px;
+  background-color: #eeeff0;
 }
-	
 </style>

@@ -2,17 +2,17 @@
   <div>
     <app-nav :activeIndex="1"></app-nav>
     <div>
-      <div class="hot-top">
-        <div class="hot-icon">
-          <img src="@/assets/img/hot-icon.png">
+      <div class="hotCover">
+        <div class="hoticon">
+          <img src="@/assets/img/hoticon.png">
         </div>
-        <div class="update">更新日期：{{ hotDate(updateTime) }}</div>
+        <div class="hottime">更新日期：{{ hotDate(updateTime) }}</div>
       </div>
       <ul class="newSong-list">
         <li v-for="(item,index) in hotData.slice(0,19)" :key="item.id">
           <router-link :to="'/song/' + item.id">
             <div class="text">
-              <div class="sequence" :class="{ active: index < 3 }">{{ getIndex(index + 1) }}</div>
+              <div class="sorting" :class="{ active: index < 3 }">{{ getIndex(index+1) }}</div>
               <div class="name-singer">
                 <div class="name">{{ item.name }}
                   <i class="originSing" style="color:#888"> {{ item.alia[0]  != null ?  '('+item.alia[0] + ')' : '' }}</i>
@@ -25,7 +25,6 @@
           </router-link>
         </li>
       </ul>
-      <div class="complete"><span>查看完整榜单></span></div>
     </div>
   </div>
 </template>
@@ -63,7 +62,10 @@ export default {
       })
     },
     getIndex(x){
-      return x < 10 ? '0' + x : x;
+      if(x<10){
+        return '0'+ x;
+      }
+      else return x;
     }
 
   },
@@ -74,55 +76,38 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.hot-top{
-	position:absolute;
-	width:750px;
-	height:292px;
-	padding-left:40px;
-	background: url('~@/assets/img/hot-bg.jpg') no-repeat 0 0 / 100% 100%; 
-	.hot-icon{
-		position:relative;
-		width:332px;
-		height:194px;
-		top:51px;
-		left:0;
-	}
-	.update{
-		margin-top:25px;
-		font-size:24px;/*px*/
-		color:#ecdcd8;
-	} 
-}
 .newSong-list{
-  padding-top:292px;
+  li{
+     padding-left: 0;
+  }
 }
 .text{
   display: flex;
   justify-content: space-between; 
-  .sequence{
+  .sorting{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
     font-size: 26px;/*px*/
     color: #888888;
+    width: 80px;
   }
   .active{
     color: #df3436;
   }
 }
-.complete{
-	display:flex;
-	height:110px;
-	justify-content:center;
-	align-items:center;
-	font-size:28px;/*px*/
-	color:#999;
+.hotCover{
+  height: 292px;
+  background-color: #bd6351;
+  padding:55px 0 0 50px;
+  .hoticon{
+    width: 285px;
+    height: 136px;
+  }
+  .hottime{
+    font-size: 24px;/*px*/
+    color:#f7f0ee;
+    margin-top: 25px;
+  }
 }
 </style>
-
-
-
-
-
-
